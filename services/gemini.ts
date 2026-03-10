@@ -1,27 +1,17 @@
 
 import { GoogleGenAI } from "@google/genai";
+import { getStoredApiKey } from "./apikey";
 import { SearchParams, ReportData, ResearchLink, EvidenceAnalysis, SavedRecord, ProfileMatchResult } from "../types";
 
-// Safe access to process.env to prevent ReferenceError in strict browser environments
-const getApiKey = () => {
-  try {
-    if (typeof process !== 'undefined' && process.env) {
-      return process.env.API_KEY;
-    }
-  } catch (e) {
-    // Ignore error
-  }
-  return 'MISSING_KEY_CHECK_ENV';
-};
-
-// Lazy initialization to prevent app crash on load if key is missing/invalid format
-let aiInstance: GoogleGenAI | null = null;
-
+// BYOK: API key is provided by the user at runtime, stored in localStorage.
+// Never falls back to a server-side env variable.
 const getAI = () => {
-  if (!aiInstance) {
-    aiInstance = new GoogleGenAI({ apiKey: getApiKey() });
+  const apiKey = getStoredApiKey();
+  if (!apiKey) {
+    throw new Error("No Gemini API key configured. Please add your API key in Settings.");
   }
-  return aiInstance;
+  // Always create a fresh instance with the current key (handles key changes)
+  return new GoogleGenAI({ apiKey });
 };
 
 export const generateBackgroundReport = async (params: SearchParams): Promise<ReportData> => {
