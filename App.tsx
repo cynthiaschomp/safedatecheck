@@ -13,14 +13,12 @@ import LandingPage from './components/LandingPage';
 import SharedReportView from './components/SharedReportView'; 
 import ReferralDashboard from './components/ReferralDashboard';
 import ReferralProgramPage from './components/ReferralProgramPage';
-import InstallPwaPrompt from './components/InstallPwaPrompt';
-import ApiKeySettings from './components/ApiKeySettings'; 
+import InstallPwaPrompt from './components/InstallPwaPrompt'; 
 import RefineChatModal from './components/RefineChatModal';
 import { SearchParams, ReportData, AppState, SavedRecord, SocialFeedback, User, UserSubmission } from './types';
 import { generateBackgroundReport } from './services/gemini';
-import { hasApiKey } from './services/apikey';
 import { getCurrentUser, logout, checkSearchLimit, incrementSearchCount, upgradeSubscription, saveSubmission, getSubmissions, getRecordById, saveRecord, getSavedRecords, syncDatabase } from './services/storage';
-import { ShieldCheck, Database, LogOut, Crown, Lock, UserPlus, ShieldBan, Gift, Loader2, Key } from 'lucide-react';
+import { ShieldCheck, Database, LogOut, Crown, Lock, UserPlus, ShieldBan, Gift, Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -35,7 +33,6 @@ const App: React.FC = () => {
   
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [incomingInviteCode, setIncomingInviteCode] = useState<string>('');
-  const [showApiKeySettings, setShowApiKeySettings] = useState(false);
 
   // Specific state for Shared View & Refinement
   const [sharedRecord, setSharedRecord] = useState<SavedRecord | null>(null);
@@ -122,11 +119,6 @@ const App: React.FC = () => {
 
   const handleSearch = async (params: SearchParams) => {
     if (!user) return;
-
-    if (!hasApiKey()) {
-      setShowApiKeySettings(true);
-      return;
-    }
 
     if (!checkSearchLimit(user)) {
       setShowUpgrade(true);
@@ -378,13 +370,6 @@ const App: React.FC = () => {
               {user?.tier === 'PAID' ? 'Premium' : 'Upgrade'}
             </button>
             
-            <button
-              onClick={() => setShowApiKeySettings(true)}
-              className="text-slate-400 hover:text-teal-600"
-              title="API Key Settings"
-            >
-              <Key className="w-5 h-5" />
-            </button>
             <button 
               onClick={handleLogout}
               className="text-slate-400 hover:text-red-500"
@@ -399,19 +384,6 @@ const App: React.FC = () => {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         
-        {appState === AppState.IDLE && !hasApiKey() && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Key className="w-5 h-5 text-amber-600" />
-              <div>
-                <p className="text-sm font-semibold text-amber-900">API Key Required</p>
-                <p className="text-xs text-amber-700">Add your Gemini API key to run searches.</p>
-              </div>
-            </div>
-            <button onClick={() => setShowApiKeySettings(true)} className="bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-amber-700 transition-colors">Add Key</button>
-          </div>
-        )}
-
         {appState === AppState.IDLE && (
           <div className="space-y-8 animate-fade-in-up">
             <SearchForm 
@@ -567,7 +539,6 @@ const App: React.FC = () => {
       </footer>
 
       {showUpgrade && <PaymentModal onClose={() => setShowUpgrade(false)} onUpgrade={handleUpgrade} />}
-      {showApiKeySettings && <ApiKeySettings onClose={() => setShowApiKeySettings(false)} />}
       <InstallPwaPrompt />
     </div>
   );
